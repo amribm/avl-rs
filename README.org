@@ -1,0 +1,9 @@
+#+title: AVL Tree Rs
+
+* Goal
+this one is for learning rust. i had a lot of fun and learned lot of thing when implementing this tree in rust
+* Ref
+https://peroxides.io/article/mutable-pointers:-AVL-trees-in-safe-rust#fn1
+thanks for the awesome blog
+
+
