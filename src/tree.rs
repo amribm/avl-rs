@@ -269,6 +269,83 @@ impl<T: Ord + Display> BSTNode<T> {
         }
         right.inorder(arr);
     }
+    fn is_nil(self: &ChildNode<T>) -> bool {
+        if let Self::Nil = **self {
+            return true;
+        }
+        false
+    }
+
+    fn pretty_print_tree(self: &ChildNode<T>) {
+        if self.is_nil() {
+            return;
+        }
+
+        if let Self::Node { ref value, .. } = **self {
+            println!("{}", value);
+        }
+
+        self.print_subtree("".to_string());
+    }
+
+    fn print_subtree(self: &ChildNode<T>, prefix: String) {
+        if self.is_nil() {
+            return;
+        }
+
+        if let Self::Node {
+            ref right,
+            ref left,
+            ref value,
+            ..
+        } = **self
+        {
+            let has_left = !left.is_nil();
+            let has_right = !right.is_nil();
+
+            if !has_right && !has_left {
+                return;
+            }
+
+            print!("{}", prefix);
+            if has_left && has_right {
+                print!("├──");
+            } else if !has_left && has_right {
+                print!("└──");
+            }
+
+            if has_right {
+                let print_strand = has_left
+                    && has_right
+                    && (if let Self::Node {
+                        left: ref r_left,
+                        right: ref r_right,
+                        ..
+                    } = **right
+                    {
+                        !r_left.is_nil() || !r_right.is_nil()
+                    } else {
+                        false
+                    });
+                if let Self::Node { ref value, .. } = **right {
+                    println!("{}", value);
+                }
+
+                let new_prefix = prefix.clone() + if print_strand { "|   " } else { "   " };
+                right.print_subtree(new_prefix);
+            }
+
+            if has_left {
+                if has_right {
+                    print!("{}", prefix);
+                }
+                if let Self::Node { ref value, .. } = **left {
+                    println!("└── {}", value);
+                }
+                left.print_subtree(prefix + "   ");
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -306,14 +383,7 @@ impl<T: Ord + Display> BST<T> {
     }
 
     pub fn pretty_print(&self) {
-        let height = self.root.get_height();
-        if height == -1 {
-            return;
-        }
-
-        let rows = height;
-        let column = 2_i32.pow(height as u32 + 1) - 1;
-        println!("rows: {}, columns: {}", rows, column);
+        self.root.pretty_print_tree();
     }
 
     pub fn get_as_inorder_vec(self) -> Vec<T> {
