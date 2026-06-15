@@ -24,6 +24,7 @@ fn main() {
     bst.delete(&3);
     bst.delete(&7);
     bst.pretty_print();
+
     println!("BST operation successful!");
-    println!("inorder BST: {:?}", bst.get_as_inorder_vec());
+    println!("BST: {}", bst);
 }

@@ -1,5 +1,5 @@
 use std::{
-    fmt::Display,
+    fmt::{Display, Pointer},
     mem::{replace, swap, take},
 };
 
@@ -296,7 +296,6 @@ impl<T: Ord + Display> BSTNode<T> {
         if let Self::Node {
             ref right,
             ref left,
-            ref value,
             ..
         } = **self
         {
@@ -346,6 +345,83 @@ impl<T: Ord + Display> BSTNode<T> {
             }
         }
     }
+
+    fn format_tree(self: &ChildNode<T>, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.is_nil() {
+            return Ok(());
+        }
+        // make peetty tree in order to start at next new line
+        writeln!(f, "")?;
+
+        if let Self::Node { ref value, .. } = **self {
+            writeln!(f, "{}", value)?;
+        }
+
+        self.format_subtree(String::new(), f)
+    }
+
+    fn format_subtree(
+        self: &ChildNode<T>,
+        prefix: String,
+        f: &mut std::fmt::Formatter<'_>,
+    ) -> std::fmt::Result {
+        if self.is_nil() {
+            return Ok(());
+        }
+
+        if let Self::Node {
+            ref right,
+            ref left,
+            ..
+        } = **self
+        {
+            let has_right = !right.is_nil();
+            let has_left = !left.is_nil();
+
+            if !has_left && !has_right {
+                return Ok(());
+            }
+
+            write!(f, "{}", prefix);
+            if has_left && has_right {
+                write!(f, "├──")?;
+            } else if !has_left && has_right {
+                write!(f, "└──")?;
+            }
+
+            if has_right {
+                let print_strand = has_left
+                    && has_right
+                    && (if let Self::Node {
+                        left: ref r_left,
+                        right: ref r_right,
+                        ..
+                    } = **right
+                    {
+                        !r_left.is_nil() || !r_right.is_nil()
+                    } else {
+                        false
+                    });
+                if let Self::Node { ref value, .. } = **right {
+                    writeln!(f, "{}", value)?;
+                }
+                let new_prefix = prefix.clone() + if print_strand { "|   " } else { "   " };
+                right.format_subtree(new_prefix, f);
+            }
+
+            if has_left {
+                if has_right {
+                    write!(f, "{}", prefix)?;
+                }
+                if let Self::Node { ref value, .. } = **left {
+                    writeln!(f, "└── {}", value)?;
+                }
+
+                left.format_subtree(prefix + "   ", f)?;
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -390,5 +466,17 @@ impl<T: Ord + Display> BST<T> {
         let mut res = Vec::new();
         self.root.inorder(&mut res);
         res
+    }
+}
+
+impl<T: Ord + Display> Display for BST<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.root.format_tree(f)
+    }
+}
+
+impl<T: Ord + Display> Display for ChildNode<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.format_tree(f)
     }
 }
